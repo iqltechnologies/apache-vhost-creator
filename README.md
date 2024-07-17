@@ -11,3 +11,11 @@ Make it executable
 
 Add your domain
 `./create-conf.sh --create YOURDOMAIN.EXTENSION`
+
+# Remove a domain
+
+`./create-conf.sh --remove YOURDOMAIN.EXTENSION`
+
+# Download wordpress during add with flag --download-wp
+
+`./create-conf.sh --create --download-wp YOURDOMAIN.EXTENSION`
