@@ -3,7 +3,11 @@ Host one or more sites on your linux server with one command. This script create
 
 ## How to use
 
+Download Script
 `wget https://cdn.jsdelivr.net/gh/iqltechnologies/apache-vhost-creator/create-conf.sh`
-`chmod +x create-conf.sh`
-`./create-conf.sh --create YOURDOMAIN.EXTENSION `
 
+Make it executable
+`chmod +x create-conf.sh`
+
+Add your domain
+`./create-conf.sh --create YOURDOMAIN.EXTENSION`
