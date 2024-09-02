@@ -9,6 +9,9 @@ ascii_art=" _  _____  _      _                  _
 (_)(___\_)(____/'\`\__)\\\`\____)\\\`\____)(_) (_)(_)\\\`\____)\\\`\___/'(_) (_) (_)
 \nCopyright 2024 IQL Technologies. For help and support or to hire us mail us on helpdesk@iqltech.com\n"
 
+# Default PHP version
+php_version="8.1"
+
 # Function to display ASCII art
 display_ascii_art() {
     echo -e "$ascii_art"
@@ -19,6 +22,40 @@ install_apache() {
     echo "Installing Apache..."
     sudo apt update
     sudo apt install apache2 -y
+    sudo a2enmod rewrite
+    sudo systemctl restart apache2
+}
+
+# Function to install PHP if not installed
+install_php() {
+    echo "Installing PHP $php_version..."
+    sudo apt update
+    sudo apt install php$php_version libapache2-mod-php$php_version -y
+    sudo systemctl restart apache2
+}
+
+# Function to install MySQL if not installed
+install_mysql() {
+    echo "Installing MySQL..."
+    sudo apt update
+    sudo apt install mysql-server -y
+    sudo systemctl start mysql
+    sudo systemctl enable mysql
+}
+
+# Function to install phpMyAdmin if not installed
+install_phpmyadmin() {
+    echo "Installing phpMyAdmin..."
+    sudo apt update
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'root'"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password 'root'"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'root'"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
+    sudo apt install phpmyadmin -y
+
+    # Create symbolic link for /phpmyadmin
+    sudo ln -s /usr/share/phpmyadmin /var/www/html/phpmyadmin
 }
 
 # Function to install Let's Encrypt (certbot) if not installed
@@ -163,6 +200,23 @@ then
     install_apache
 fi
 
+# Check if PHP is installed, if not, install it
+if ! command -v php &> /dev/null || ! php -v | grep -q $php_version
+then
+    install_php
+fi
+
+# Check if MySQL is installed, if not, install it
+if ! command -v mysql &> /dev/null
+then
+    install_mysql
+fi
+
+# Check if phpMyAdmin is installed, if not, install it
+if [ ! -d "/usr/share/phpmyadmin" ]; then
+    install_phpmyadmin
+fi
+
 # Check if certbot is installed, if not, install it
 if ! command -v certbot &> /dev/null
 then
@@ -174,16 +228,24 @@ display_ascii_art
 
 # Parse command-line arguments
 if [ "$#" -eq 0 ]; then
-    echo "Usage: $0 --create domain1 domain2 ... | --remove domain | --download-wp domain"
+    echo "Usage: $0 --create domain1 domain2 ... [--php-version x.x] | --remove domain | --download-wp domain"
     exit 1
 fi
 
-# Check the command
-command=$1
-shift
+# PHP version can be modified through command-line arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --php-version) php_version="$2"; shift ;;
+        --create) command="--create" ;;
+        --remove) command="--remove" ;;
+        --download-wp) command="--download-wp" ;;
+        *) domains+=("$1") ;;
+    esac
+    shift
+done
 
 # Loop through each domain passed as argument and perform the appropriate action
-for domain in "$@"
+for domain in "${domains[@]}"
 do
     if [ "$command" == "--create" ]; then
         create_vhost $domain
@@ -194,7 +256,7 @@ do
     elif [ "$command" == "--download-wp" ]; then
         download_wp $domain
     else
-        echo "Invalid command. Usage: $0 --create domain1 domain2 ... | --remove domain | --download-wp domain"
+        echo "Invalid command."
         exit 1
     fi
 done
