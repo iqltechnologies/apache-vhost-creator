@@ -247,41 +247,53 @@ configure_firewall() {
     echo "UFW firewall configured to allow Apache ports 80 and 443."
 }
 
-# Check if Apache is installed, if not, install it
-if ! command -v apache2 &> /dev/null
-then
-    install_apache
-fi
+# Function to install basic software if the --install-basics flag is used
+install_basics() {
+    # Check if Apache is installed, if not, install it
+    if ! command -v apache2 &> /dev/null
+    then
+        install_apache
+    fi
 
-# Check if PHP is installed, if not, install it
-if ! command -v php &> /dev/null || ! php -v | grep -q $php_version
-then
-    install_php
-fi
+    # Check if PHP is installed, if not, install it
+    if ! command -v php &> /dev/null || ! php -v | grep -q $php_version
+    then
+        install_php
+    fi
 
-# Check if MySQL is installed, if not, install it
-if ! command -v mysql &> /dev/null
-then
-    install_mysql
-fi
+    # Check if MySQL is installed, if not, install it
+    if ! command -v mysql &> /dev/null
+    then
+        install_mysql
+    fi
 
-# Check and install OpenSSL
-check_and_install_openssl
+    # Check and install OpenSSL
+    check_and_install_openssl
 
-# Check and install Certbot (Let's Encrypt)
-check_and_install_certbot
+    # Check and install Certbot (Let's Encrypt)
+    check_and_install_certbot
 
-# Install phpMyAdmin if not installed
-if ! [ -d /usr/share/phpmyadmin ]; then
-    install_phpmyadmin
-fi
+    # Install phpMyAdmin if not installed
+    if ! [ -d /usr/share/phpmyadmin ]; then
+        install_phpmyadmin
+    fi
 
-# Configure firewall (UFW) to allow Apache 80 and 443
-configure_firewall
+    # Configure firewall (UFW) to allow Apache 80 and 443
+    configure_firewall
+}
 
-# Parse the command-line arguments
+# Display ASCII art with the copyright message
+display_ascii_art
+
+# Parse command-line arguments
+install_basics_flag=false
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
+        --install-basics)
+            install_basics_flag=true
+            shift
+            ;;
         --php-version)
             php_version="$2"
             shift
@@ -302,7 +314,12 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-# Execute the appropriate command
+# Execute installation if --install-basics was passed
+if [ "$install_basics_flag" = true ]; then
+    install_basics
+fi
+
+# Execute the appropriate command for the domains
 for domain in "${domains[@]}"; do
     if [ "$command" == "--create" ]; then
         create_vhost $domain
@@ -318,6 +335,3 @@ for domain in "${domains[@]}"; do
         exit 1
     fi
 done
-
-# Display ASCII art at the end
-display_ascii_art
