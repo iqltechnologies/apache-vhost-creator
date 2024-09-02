@@ -9,27 +9,27 @@ This script automates the setup of a server environment on Ubuntu 22.04. It inst
 ## How to use
 
 Download Script
-`wget https://cdn.jsdelivr.net/gh/servermango/easy-server-setup/create-conf.sh`
+`wget https://cdn.jsdelivr.net/gh/servermango/easy-server-setup/easy-server-setup.sh`
 
 Make it executable
-`chmod +x create-conf.sh`
+`chmod +x easy-server-setup.sh`
 
 Add your domain
-`./create-conf.sh --create YOURDOMAIN.EXTENSION`
+`./easy-server-setup.sh --create YOURDOMAIN.EXTENSION`
 
 ### Usage
 
 ```bash
-./setup.sh [options] [command] [domains...]
+./easy-server-setup.sh [options] [command] [domains...]
 ```
 
 # Remove a domain
 
-`./create-conf.sh --remove YOURDOMAIN.EXTENSION`
+`./easy-server-setup.sh --remove YOURDOMAIN.EXTENSION`
 
 # Download wordpress during add with flag --download-wp
 
-`./create-conf.sh --create --download-wp YOURDOMAIN.EXTENSION`
+`./easy-server-setup.sh --create --download-wp YOURDOMAIN.EXTENSION`
 
 ### Options
 
@@ -49,7 +49,7 @@ Add your domain
 To install Apache, PHP, MySQL, OpenSSL, Certbot, and phpMyAdmin, and configure the firewall:
 
 ```bash
-./setup.sh --install-basics
+./easy-server-setup.sh --install-basics
 ```
 
 #### 2. Specify PHP Version
@@ -57,7 +57,7 @@ To install Apache, PHP, MySQL, OpenSSL, Certbot, and phpMyAdmin, and configure t
 To install a specific version of PHP (e.g., `8.2`) and also install basic software:
 
 ```bash
-./setup.sh --install-basics --php-version 8.2
+./easy-server-setup.sh --install-basics --php-version 8.2
 ```
 
 #### 3. Create a Virtual Host
@@ -65,7 +65,7 @@ To install a specific version of PHP (e.g., `8.2`) and also install basic softwa
 To create a virtual host for `example.com`, including SSL certificates and phpMyAdmin access:
 
 ```bash
-./setup.sh --create example.com
+./easy-server-setup.sh --create example.com
 ```
 
 #### 4. Remove a Virtual Host
@@ -73,7 +73,7 @@ To create a virtual host for `example.com`, including SSL certificates and phpMy
 To remove the virtual host and SSL configuration for `example.com`:
 
 ```bash
-./setup.sh --remove example.com
+./easy-server-setup.sh --remove example.com
 ```
 
 #### 5. Download and Install WordPress
@@ -81,7 +81,7 @@ To remove the virtual host and SSL configuration for `example.com`:
 To download and extract the latest version of WordPress into the `public_html` directory for `example.com`:
 
 ```bash
-./setup.sh --download-wp example.com
+./easy-server-setup.sh --download-wp example.com
 ```
 
 ### Detailed Function Descriptions
