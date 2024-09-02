@@ -1,4 +1,4 @@
-# Ubuntu server Server Setup Script to Host one or more domains with PHP, Apache, MySQL, (or maybe WordPress)
+# Ubuntu Server Setup Script to Host one or more domains with PHP, Apache, MySQL, (or maybe WordPress)
 Host one or more sites on your linux server with one command. This script creates vhost conf file, installs SSL and apache (Tested on Ubuntu Server)
 
 ### Overview
