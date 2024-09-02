@@ -29,7 +29,7 @@ ascii_art="
                                      ...:---===================-::                        
                                                  ..........                               
                  
-\nCopyright 2024 IQL Technologies. For help and support or to hire us mail us on helpdesk@iqltech.com\n"
+\nCopyright 2024 ServerMango. For help and support or to hire us mail us on helpdesk@servermango.com\n"
 
 # Default PHP version
 php_version="8.1"
