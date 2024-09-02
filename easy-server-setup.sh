@@ -91,11 +91,12 @@ install_phpmyadmin() {
 
 # Function to create a MySQL user with all privileges
 create_mysql_user() {
-    user=$1
+    user= "dbuser"
     password=$(openssl rand -base64 24)  # Generate a strong password
 
     echo "Creating MySQL user '$user' with full privileges..."
     sudo mysql -e "CREATE USER '$user'@'localhost' IDENTIFIED BY '$password';"
+    sudo mysql -e "ALTER USER '$user'@'localhost' IDENTIFIED WITH mysql_native_password BY '$password';"
     sudo mysql -e "GRANT ALL PRIVILEGES ON *.* TO '$user'@'localhost' WITH GRANT OPTION;"
     sudo mysql -e "FLUSH PRIVILEGES;"
 
