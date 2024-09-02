@@ -9,7 +9,7 @@ This script automates the setup of a server environment on Ubuntu 22.04. It inst
 ## How to use
 
 Download Script
-`wget https://cdn.jsdelivr.net/gh/iqltechnologies/apache-vhost-creator/create-conf.sh`
+`wget https://cdn.jsdelivr.net/gh/servermango/easy-server-setup/create-conf.sh`
 
 Make it executable
 `chmod +x create-conf.sh`
