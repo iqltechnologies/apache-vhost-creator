@@ -43,26 +43,63 @@ install_mysql() {
     sudo systemctl enable mysql
 }
 
+# Function to check if OpenSSL is installed, if not, install it
+check_and_install_openssl() {
+    if ! command -v openssl &> /dev/null
+    then
+        echo "Installing OpenSSL..."
+        sudo apt update
+        sudo apt install openssl -y
+    else
+        echo "OpenSSL is already installed."
+    fi
+}
+
+# Function to check if Certbot is installed, if not, install it
+check_and_install_certbot() {
+    if ! command -v certbot &> /dev/null
+    then
+        echo "Installing Let's Encrypt (certbot)..."
+        sudo apt update
+        sudo apt install certbot python3-certbot-apache -y
+    else
+        echo "Certbot is already installed."
+    fi
+}
+
 # Function to install phpMyAdmin if not installed
 install_phpmyadmin() {
     echo "Installing phpMyAdmin..."
+
+    # Generate a random and strong password
+    phpmyadmin_password=$(openssl rand -base64 24)
+
     sudo apt update
     sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
-    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password 'root'"
-    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password 'root'"
-    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password 'root'"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password '$phpmyadmin_password'"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password '$phpmyadmin_password'"
+    sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password '$phpmyadmin_password'"
     sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
     sudo apt install phpmyadmin -y
 
     # Create symbolic link for /phpmyadmin
     sudo ln -s /usr/share/phpmyadmin /var/www/html/phpmyadmin
+
+    # Display the generated password
+    echo "phpMyAdmin has been installed. The MySQL root password is: $phpmyadmin_password"
 }
 
-# Function to install Let's Encrypt (certbot) if not installed
-install_certbot() {
-    echo "Installing Let's Encrypt (certbot)..."
-    sudo apt update
-    sudo apt install certbot python3-certbot-apache -y
+# Function to create a MySQL user with all privileges
+create_mysql_user() {
+    user=$1
+    password=$(openssl rand -base64 24)  # Generate a strong password
+
+    echo "Creating MySQL user '$user' with full privileges..."
+    sudo mysql -e "CREATE USER '$user'@'localhost' IDENTIFIED BY '$password';"
+    sudo mysql -e "GRANT ALL PRIVILEGES ON *.* TO '$user'@'localhost' WITH GRANT OPTION;"
+    sudo mysql -e "FLUSH PRIVILEGES;"
+
+    echo "MySQL user '$user' created with the following password: $password"
 }
 
 # Function to install unzip if not installed
@@ -194,6 +231,22 @@ remove_domain() {
     echo "Removed Apache config and SSL for $domain"
 }
 
+# Function to enable UFW firewall and allow Apache ports 80 and 443
+configure_firewall() {
+    echo "Configuring UFW firewall..."
+
+    # Enable UFW if it's not enabled
+    sudo ufw enable
+
+    # Allow Apache Full profile (80 and 443 ports)
+    sudo ufw allow 'Apache Full'
+
+    # Reload UFW
+    sudo ufw reload
+
+    echo "UFW firewall configured to allow Apache ports 80 and 443."
+}
+
 # Check if Apache is installed, if not, install it
 if ! command -v apache2 &> /dev/null
 then
@@ -212,43 +265,48 @@ then
     install_mysql
 fi
 
-# Check if phpMyAdmin is installed, if not, install it
-if [ ! -d "/usr/share/phpmyadmin" ]; then
+# Check and install OpenSSL
+check_and_install_openssl
+
+# Check and install Certbot (Let's Encrypt)
+check_and_install_certbot
+
+# Install phpMyAdmin if not installed
+if ! [ -d /usr/share/phpmyadmin ]; then
     install_phpmyadmin
 fi
 
-# Check if certbot is installed, if not, install it
-if ! command -v certbot &> /dev/null
-then
-    install_certbot
-fi
+# Configure firewall (UFW) to allow Apache 80 and 443
+configure_firewall
 
-# Display ASCII art with the copyright message
-display_ascii_art
-
-# Parse command-line arguments
-if [ "$#" -eq 0 ]; then
-    echo "Usage: $0 --create domain1 domain2 ... [--php-version x.x] | --remove domain | --download-wp domain"
-    exit 1
-fi
-
-# PHP version can be modified through command-line arguments
+# Parse the command-line arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        --php-version) php_version="$2"; shift ;;
-        --create) command="--create" ;;
-        --remove) command="--remove" ;;
-        --download-wp) command="--download-wp" ;;
-        *) domains+=("$1") ;;
+        --php-version)
+            php_version="$2"
+            shift
+            ;;
+        --create|--remove|--download-wp)
+            command=$1
+            domains=()
+            shift
+            while [[ "$#" -gt 0 && "$1" != --* ]]; do
+                domains+=("$1")
+                shift
+            done
+            ;;
+        *)
+            echo "Invalid option: $1"
+            exit 1
+            ;;
     esac
-    shift
 done
 
-# Loop through each domain passed as argument and perform the appropriate action
-for domain in "${domains[@]}"
-do
+# Execute the appropriate command
+for domain in "${domains[@]}"; do
     if [ "$command" == "--create" ]; then
         create_vhost $domain
+        create_mysql_user "phpmyadmin_$domain"
         install_ssl $domain
         add_ssl_to_vhost $domain
     elif [ "$command" == "--remove" ]; then
@@ -260,3 +318,6 @@ do
         exit 1
     fi
 done
+
+# Display ASCII art at the end
+display_ascii_art
