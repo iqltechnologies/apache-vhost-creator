@@ -111,6 +111,37 @@ install_phpmyadmin() {
     echo "phpMyAdmin has been installed. The MySQL root password is: $phpmyadmin_password"
 }
 
+
+
+# Function to remove the phpMyAdmin symbolic link for a specific domain
+hide_phpmyadmin() {
+    domain=$1
+    pma_link="/var/www/$domain/phpmyadmin"
+
+    if [ -L $pma_link ]; then
+        echo "Removing phpMyAdmin symbolic link for $domain..."
+        sudo rm $pma_link
+        echo "phpMyAdmin symbolic link removed for $domain."
+    else
+        echo "phpMyAdmin symbolic link does not exist for $domain."
+    fi
+}
+
+# Function to re-add the phpMyAdmin symbolic link for a specific domain
+show_phpmyadmin() {
+    domain=$1
+    pma_link="/var/www/$domain/phpmyadmin"
+
+    if [ ! -L $pma_link ]; then
+        echo "Re-adding phpMyAdmin symbolic link for $domain..."
+        sudo ln -s /usr/share/phpmyadmin $pma_link
+        echo "phpMyAdmin symbolic link added for $domain."
+    else
+        echo "phpMyAdmin symbolic link already exists for $domain."
+    fi
+}
+
+
 # Function to create a MySQL user with all privileges
 create_mysql_user() {
     
@@ -329,6 +360,16 @@ while [[ "$#" -gt 0 ]]; do
                 domains+=("$1")
                 shift
             done
+            ;;
+        --hide-pma)
+            domain=$2
+            hide_phpmyadmin $domain
+            shift 2
+            ;;
+        --show-pma)
+            domain=$2
+            show_phpmyadmin $domain
+            shift 2
             ;;
         *)
             echo "Invalid option: $1"
