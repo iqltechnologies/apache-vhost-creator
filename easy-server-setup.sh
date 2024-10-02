@@ -116,7 +116,7 @@ install_phpmyadmin() {
 # Function to remove the phpMyAdmin symbolic link for a specific domain
 hide_phpmyadmin() {
     domain=$1
-    pma_link="/var/www/$domain/phpmyadmin"
+    pma_link="/var/www/$domain/public_html/phpmyadmin"
 
     if [ -L $pma_link ]; then
         echo "Removing phpMyAdmin symbolic link for $domain..."
@@ -130,7 +130,7 @@ hide_phpmyadmin() {
 # Function to re-add the phpMyAdmin symbolic link for a specific domain
 show_phpmyadmin() {
     domain=$1
-    pma_link="/var/www/$domain/phpmyadmin"
+    pma_link="/var/www/$domain/public_html/phpmyadmin"
 
     if [ ! -L $pma_link ]; then
         echo "Re-adding phpMyAdmin symbolic link for $domain..."
