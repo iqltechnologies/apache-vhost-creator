@@ -3,28 +3,28 @@
 # ASCII Art with copyright message
 ascii_art="                                                                             
                                                                                           
-                           -=-                 ........::::::::::::::::.                  
-                           -=:              ....:::::::::::::::::::::::::.                
-                   .:-==-::==                        .:::::::::::::::::::....             
-                 :======++++=         .                 .:::::::::::::::::.....           
-              .-=++++++++*===  ..............              :::::::::::::::.......         
-          .:-=++++++++=-.   .::.................            .::::::::::::::......         
-                          ::::::::................            ::::::::::::::::::          
-                        ::::::::::::................           :::::::::::::::::          
-                       :---:::::::::::::..............         .::::::::::::::::          
-                      :-------::::::::::::...............       ::::::::::::::::          
-                    ---------------------------::::::::::.    :-----------------          
-                    -----------------------------:::::::     -------------------          
-                    .-------------------------------:::    .-------------:-----:          
-               :-    ---------------------------------    .--------------------:          
-               --:    -=====--------------------------    :---------------=====:          
-              .---.    -==========--------------------:    :--------------=====:          
-              :====:    -===============----------------.    :------------=====:              
-             :=========:     :-==========================-:    :====-----======.          
-            .==============:       .:--=========--::.       .-=========-=======.          
-             .-==============-:                         .::====================           
+                           -=-                 ........:::::::::::::::.                  
+                           -=:              ....::::::::::::::::::::::::.                
+                   .:-==-::==                      .::::::::::::::::::....             
+                 :======++++=         .                .::::::::::::::::.....           
+              .-=++++++++*===  ..............            ::::::::::::::.......         
+          .:-=++++++++=-.   .::.................          .:::::::::::::......         
+                          ::::::::................          :::::::::::::::::          
+                        ::::::::::::................         ::::::::::::::::          
+                       :---:::::::::::::..............        .:::::::::::::::          
+                      :-------::::::::::::..............       :::::::::::::::          
+                    ---------------------------::::::::.    :----------------          
+                    -----------------------------:::::::     ------------------          
+                    .-------------------------------:::    .------------:-----:          
+               :-    ---------------------------------    .-------------------:          
+               --:    -=====--------------------------    :--------------=====:          
+              .---.    -==========--------------------:    :-------------=====:          
+              :====:    -===============----------------.    :-----------=====:              
+             :=========:     :-=========================-:    :====-----======.          
+            .==============:       .:--=========--::.       .-========-=======.          
+             .-==============-:                         .::===================           
                 .-===============-:..             ..::-===============-========             
-                        .::-============================================-:.               
+                        .::-===========================================-:.               
                               .::--=================================:..                   
                                      ...:---===================-::                        
                                                  ..........                               
@@ -111,32 +111,54 @@ install_phpmyadmin() {
     echo "phpMyAdmin has been installed. The MySQL root password is: $phpmyadmin_password"
 }
 
-# Function to remove the phpMyAdmin symbolic link for a specific domain
+# Function to hide the phpMyAdmin symbolic link for a specific domain
 hide_phpmyadmin() {
-    domain=$1
-    pma_link="/var/www/$domain/public_html/phpmyadmin"
 
-    if [ -L $pma_link ]; then
-        echo "Removing phpMyAdmin symbolic link for $domain..."
-        sudo rm $pma_link
-        echo "phpMyAdmin symbolic link removed for $domain."
+    pma_link="/var/www/html/phpmyadmin"
+
+    if [ -L "$pma_link" ]; then
+        echo "Removing phpMyAdmin symbolic link "
+        sudo rm "$pma_link"
+        echo "phpMyAdmin symbolic link removed  "
+        disable_phpmyadmin_config  # Disable the configuration
     else
-        echo "phpMyAdmin symbolic link does not exist for $domain."
+        echo "phpMyAdmin symbolic link does not exist "
     fi
+
+    echo "Removing global phpMyAdmin configuration..."
+    
+    # Disable the phpMyAdmin Apache configuration
+    sudo a2disconf phpmyadmin
+
+    # Reload Apache to apply the changes
+    sudo systemctl reload apache2
+
 }
+
 
 # Function to re-add the phpMyAdmin symbolic link for a specific domain
 show_phpmyadmin() {
-    domain=$1
-    pma_link="/var/www/$domain/public_html/phpmyadmin"
 
-    if [ ! -L $pma_link ]; then
-        echo "Re-adding phpMyAdmin symbolic link for $domain..."
-        sudo ln -s /usr/share/phpmyadmin $pma_link
-        echo "phpMyAdmin symbolic link added for $domain."
+    echo "Re-adding global phpMyAdmin configuration..."
+    
+    # Enable the phpMyAdmin Apache configuration
+    sudo a2enconf phpmyadmin
+
+    # Reload Apache to apply the changes
+    sudo systemctl reload apache2
+
+    echo "Global phpMyAdmin configuration re-added and Apache reloaded."
+
+    pma_link="/var/www/html/phpmyadmin"
+
+    if [ ! -L "$pma_link" ]; then
+        echo "Re-adding global phpMyAdmin symbolic link..."
+        sudo ln -s /usr/share/phpmyadmin "$pma_link"
+        echo "Global phpMyAdmin symbolic link added."
     else
-        echo "phpMyAdmin symbolic link already exists for $domain."
+        echo "phpMyAdmin symbolic link already exists."
     fi
+    
 }
 
 
@@ -191,7 +213,6 @@ create_vhost() {
     domain=$1
     public_html="/var/www/$domain/public_html"
     conf_file="/etc/apache2/sites-available/$domain.conf"
-    no_access_log=$2  # Capture the second argument
 
     # Create directory if it doesn't exist
     if [ ! -d "$public_html" ]; then
@@ -210,14 +231,9 @@ create_vhost() {
         Require all granted
     </Directory>
 
-    ErrorLog \${APACHE_LOG_DIR}/${domain}_error.log" | sudo tee $conf_file
-
-    # Conditionally add CustomLog based on --no-access-log
-    if [[ "$no_access_log" != "--no-access-log" ]]; then
-        echo "    CustomLog \${APACHE_LOG_DIR}/${domain}_access.log combined" | sudo tee -a $conf_file
-    fi
-
-    echo "</VirtualHost>" | sudo tee -a $conf_file
+    ErrorLog \${APACHE_LOG_DIR}/${domain}_error.log
+    CustomLog \${APACHE_LOG_DIR}/${domain}_access.log combined
+</VirtualHost>" | sudo tee $conf_file
 
     # Enable the site
     sudo a2ensite $domain.conf
@@ -226,34 +242,6 @@ create_vhost() {
     sudo systemctl reload apache2
 
     echo "Created Apache config for $domain"
-}
-
-disable_access_logs() {
-    domain=$1
-    conf_file="/etc/apache2/sites-available/$domain.conf"
-
-    # Disable the access log by commenting out the CustomLog line
-    if [ -f "$conf_file" ]; then
-        sudo sed -i 's/^    CustomLog/#    CustomLog/' "$conf_file"
-        sudo systemctl reload apache2
-        echo "Access logs disabled for $domain."
-    else
-        echo "Error: Configuration file for $domain not found."
-    fi
-}
-
-enable_access_logs() {
-    domain=$1
-    conf_file="/etc/apache2/sites-available/$domain.conf"
-
-    # Enable the access log by uncommenting the CustomLog line
-    if [ -f "$conf_file" ]; then
-        sudo sed -i 's/^#    CustomLog/    CustomLog/' "$conf_file"
-        sudo systemctl reload apache2
-        echo "Access logs enabled for $domain."
-    else
-        echo "Error: Configuration file for $domain not found."
-    fi
 }
 
 # Function to add SSL configuration to the virtual host
@@ -373,6 +361,7 @@ display_ascii_art
 
 # Parse command-line arguments
 install_basics_flag=false
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --install-basics)
@@ -381,7 +370,7 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --php-version)
             php_version="$2"
-            shift 2  # Shift past the option and the value.
+            shift
             ;;
         --create|--remove|--download-wp)
             command=$1
@@ -393,26 +382,15 @@ while [[ "$#" -gt 0 ]]; do
             done
             ;;
         --hide-pma)
-            domain="$2"
-            hide_phpmyadmin "$domain"
+            domain=$2
+            hide_phpmyadmin 
             shift 2
             ;;
         --show-pma)
-            domain="$2"
-            show_phpmyadmin "$domain"
+            domain=$2
+            show_phpmyadmin $domain
             shift 2
             ;;
-        
-        --disable-access-logs)
-            disable_access_logs
-            shift
-            ;;
-            
-        --enable-access-logs)
-            enable_access_logs
-            shift
-            ;;
-
         *)
             echo "Invalid option: $1"
             exit 1
