@@ -1,6 +1,36 @@
 # Ubuntu Server Setup Script to Host one or more domains with PHP, Apache, MySQL, (or maybe WordPress)
 Host one or more sites on your linux server with one command. This script creates vhost conf file, installs SSL and apache (Tested on Ubuntu Server)
 
+## Prerequisites
+
+- A  Ubuntu 22 or up Server.
+- Access to the terminal with `sudo` privileges.
+- MySQL/MariaDB installed for database operations.
+- DigitalOcean account and Spaces set up for storing backups.
+- 
+# Quickstart - Install or migrate WordPress
+
+We have included a new quickstart script to easily migrate your site if you use wordpress and mgrating to Ubuntu VPS. We assume you are also using wp_offload_media plugin with digitalocean and also want backup of database every 8 hours. It’s designed to streamline the process of migrating a WordPress environment in few seconds.
+
+## Easy Migration
+
+Assuming your site is in migration.sql file in `/var/www/yoursite/public_html` cd in to the director and upload your migration.sql file in `/var/www/yoursite/`
+
+Download Script
+
+`wget https://cdn.jsdelivr.net/gh/servermango/easy-server-setup/migrate-restore.sh && chmod +x migrate-restore.sh`
+
+*Command-Line Options*
+  -   --install-openssl: Install OpenSSL if not installed.
+  -  --import-database: Import the specified database.
+  -  --install-s3cmd: Install and configure s3cmd for DigitalOcean Spaces.
+  -  --run-server-setup: Run the server setup script.
+  -  --update-backup-cron-file: Update the backup_cron.sh file with database credentials.
+  -  --add-backup-cron: Add a cron job for backup.
+  -  --add-keepup-cron: Add a cron job for the keep-up script.
+  -  --add-offload-media-config: Add offload media configuration to wp-config.php.
+  -  --all: Run all tasks.
+
 ### Overview
 
 This script automates the setup of a server environment on Ubuntu 22.04. It installs and configures Apache, PHP (with a version specified by the user), MySQL, phpMyAdmin, and additional utilities. The script also includes options to create and manage virtual hosts, install SSL certificates, and configure the firewall.
