@@ -19,9 +19,10 @@ Assuming your site is in migration.sql file in `/var/www/yoursite/public_html` c
 Download Script
 
 `wget https://cdn.jsdelivr.net/gh/servermango/easy-server-setup/migrate-restore.sh && chmod +x migrate-restore.sh`
+`migrate-restore --all DOMAINNAME.com`
 
-*Command-Line Options*
-  -  `--all`: Run all tasks.
+*Other Command-Line Options*
+  -  `--all`: Run all tasks - requires a domain name
   -  `--install-openssl`: Install OpenSSL if not installed.
   -  `--import-database`: Import the specified database.
   -  `--install-s3cmd`: Install and configure s3cmd for DigitalOcean Spaces.
