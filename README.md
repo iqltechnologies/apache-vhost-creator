@@ -21,15 +21,15 @@ Download Script
 `wget https://cdn.jsdelivr.net/gh/servermango/easy-server-setup/migrate-restore.sh && chmod +x migrate-restore.sh`
 
 *Command-Line Options*
-  -   --install-openssl: Install OpenSSL if not installed.
-  -  --import-database: Import the specified database.
-  -  --install-s3cmd: Install and configure s3cmd for DigitalOcean Spaces.
-  -  --run-server-setup: Run the server setup script.
-  -  --update-backup-cron-file: Update the backup_cron.sh file with database credentials.
-  -  --add-backup-cron: Add a cron job for backup.
-  -  --add-keepup-cron: Add a cron job for the keep-up script.
-  -  --add-offload-media-config: Add offload media configuration to wp-config.php.
-  -  --all: Run all tasks.
+  -  `--all`: Run all tasks.
+  -  `--install-openssl`: Install OpenSSL if not installed.
+  -  `--import-database`: Import the specified database.
+  -  `--install-s3cmd`: Install and configure s3cmd for DigitalOcean Spaces.
+  -  `--run-server-setup`: Run the server setup script.
+  -  `--update-backup-cron-file`: Update the backup_cron.sh file with database credentials.
+  -  `--add-backup-cron`: Add a cron job for backup.
+  -  `--add-keepup-cron`: Add a cron job for the keep-up script.
+  -  `--add-offload-media-config`: Add offload media configuration to wp-config.php.
 
 ### Overview
 
