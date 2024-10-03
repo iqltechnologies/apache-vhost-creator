@@ -14,7 +14,7 @@ We have included a new quickstart script to easily migrate your site if you use 
 
 ## Easy Migration
 
-Assuming your site is in migration.sql file in `/var/www/yoursite/public_html` cd in to the director and upload your migration.sql file in `/var/www/yoursite/`
+Assuming your site is in migration.sql file in `/var/www/yoursite/public_html` cd in to the directory and upload your migration.sql file in `/var/www/yoursite/`
 
 Download Script
 
