@@ -104,20 +104,25 @@ add_keepup_cron_job() {
     chmod +x keep_up.sh
 
     echo "Adding a cron job to run $keep_up_script_path every 8 hours..."
-    (crontab -l 2>/dev/null; echo "0 */8 * * * bash $keep_up_script_path") | sudo crontab - || { echo "Failed to add cron job for keep_up.sh. Exiting."; exit 1; }
+    (crontab -l 2>/dev/null; echo "* * * * * bash $keep_up_script_path") | sudo crontab - || { echo "Failed to add cron job for keep_up.sh. Exiting."; exit 1; }
     echo "Cron job for keep_up.sh added successfully."
 }
 
-# Function to add a cron job for backup_cron.sh
 add_backup_cron_job() {
-    echo "Downloading backup_cron.sh..."
-    wget https://cdn.jsdelivr.net/gh/servermango/automatically-backup-database-to-cloud/backup_cron.sh
-    chmod +x backup_cron.sh
-
+    # Check if the file exists before downloading
+    if [ ! -f "$back_up_script_path" ]; then
+        echo "Downloading backup_cron.sh..."
+        wget https://cdn.jsdelivr.net/gh/servermango/automatically-backup-database-to-cloud/backup_cron.sh -O "$back_up_script_path"
+        chmod +x "$back_up_script_path"
+    else
+        echo "backup_cron.sh already exists. Skipping download."
+    fi
+    # Add a cron job to run the backup script every 8 hours
     echo "Adding a cron job to run $back_up_script_path every 8 hours..."
     (crontab -l 2>/dev/null; echo "0 */8 * * * bash $back_up_script_path") | sudo crontab - || { echo "Failed to add cron job. Exiting."; exit 1; }
     echo "Cron job for backup_cron.sh added successfully."
 }
+
 
 # Main function to group database tasks
 database_tasks() {
