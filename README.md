@@ -31,10 +31,9 @@ Download Script
   -  `--add-keepup-cron`: Add a cron job for the keep-up script.
   -  `--add-offload-media-config`: Add offload media configuration to wp-config.php.
 
-### Overview
+## Fresh Start
 
 This script automates the setup of a server environment on Ubuntu 22.04. It installs and configures Apache, PHP (with a version specified by the user), MySQL, phpMyAdmin, and additional utilities. The script also includes options to create and manage virtual hosts, install SSL certificates, and configure the firewall.
-
 
 ## How to use
 
