@@ -34,8 +34,6 @@ offload_media_config="define( 'AS3CF_SETTINGS', serialize( array(
     'remove-local-file' => false, 
 )));"
 
-apt-get update
-
 apt-get install wget
 
 # Function to check and install OpenSSL if not installed
@@ -94,7 +92,22 @@ run_server_setup() {
     sudo apt-get install wget -y || { echo "Failed to install wget. Exiting."; exit 1; }
 
     echo "Running the server setup script..."
-    bash <(curl -s https://cdn.jsdelivr.net/gh/servermango/easy-server-setup/easy-server-setup.sh) --install-basics || { echo "Failed to run server setup script. Exiting."; exit 1; }
+    wget https://cdn.jsdelivr.net/gh/servermango/easy-server-setup/easy-server-setup.sh) 
+    chmod +x easy-server-setup.sh
+    ./easy-server-setup.sh --install-basics || { echo "Failed to run server setup script. Exiting."; exit 1; }
+}
+
+add_domain() {
+    if [[ -z "$1" ]]; then
+        echo "Error: Domain name is required."
+        exit 1
+    fi
+    ./easy-server-setup.sh --create "$1"
+}
+
+# Main function to group database tasks
+database_tasks() {
+    import_database
 }
 
 # Function to add a cron job for keep_up.sh
@@ -228,8 +241,13 @@ case "$1" in
         add_offload_media_config
         ;;
     --all)
+        if [[ -z "$2" ]]; then
+            echo "Error: Domain name is required when using --all."
+            exit 1
+        fi
         check_and_install_openssl
         run_server_setup
+        add_domain
         install_and_configure_s3cmd
         database_tasks
         update_backup_cron_file
@@ -238,7 +256,7 @@ case "$1" in
         add_offload_media_config
         ;;
     *)
-        echo "Usage: $0 {--install-openssl|--import-database|--install-s3cmd|--run-server-setup|--update-backup-cron-file|--add-backup-cron|--add-keepup-cron|--add-offload-media-config|--all}"
+        echo "Usage: $0 {--install-openssl|--import-database|--install-s3cmd|--run-server-setup|--update-backup-cron-file|--add-backup-cron|--add-keepup-cron|--add-offload-media-config|--all DOMAIN_NAME}"
         exit 1
         ;;
 esac
