@@ -111,8 +111,6 @@ install_phpmyadmin() {
     echo "phpMyAdmin has been installed. The MySQL root password is: $phpmyadmin_password"
 }
 
-
-
 # Function to remove the phpMyAdmin symbolic link for a specific domain
 hide_phpmyadmin() {
     domain=$1
@@ -193,6 +191,7 @@ create_vhost() {
     domain=$1
     public_html="/var/www/$domain/public_html"
     conf_file="/etc/apache2/sites-available/$domain.conf"
+    no_access_log=$2  # Capture the second argument
 
     # Create directory if it doesn't exist
     if [ ! -d "$public_html" ]; then
@@ -211,9 +210,14 @@ create_vhost() {
         Require all granted
     </Directory>
 
-    ErrorLog \${APACHE_LOG_DIR}/${domain}_error.log
-    CustomLog \${APACHE_LOG_DIR}/${domain}_access.log combined
-</VirtualHost>" | sudo tee $conf_file
+    ErrorLog \${APACHE_LOG_DIR}/${domain}_error.log" | sudo tee $conf_file
+
+    # Conditionally add CustomLog based on --no-access-log
+    if [[ "$no_access_log" != "--no-access-log" ]]; then
+        echo "    CustomLog \${APACHE_LOG_DIR}/${domain}_access.log combined" | sudo tee -a $conf_file
+    fi
+
+    echo "</VirtualHost>" | sudo tee -a $conf_file
 
     # Enable the site
     sudo a2ensite $domain.conf
@@ -222,6 +226,34 @@ create_vhost() {
     sudo systemctl reload apache2
 
     echo "Created Apache config for $domain"
+}
+
+disable_access_logs() {
+    domain=$1
+    conf_file="/etc/apache2/sites-available/$domain.conf"
+
+    # Disable the access log by commenting out the CustomLog line
+    if [ -f "$conf_file" ]; then
+        sudo sed -i 's/^    CustomLog/#    CustomLog/' "$conf_file"
+        sudo systemctl reload apache2
+        echo "Access logs disabled for $domain."
+    else
+        echo "Error: Configuration file for $domain not found."
+    fi
+}
+
+enable_access_logs() {
+    domain=$1
+    conf_file="/etc/apache2/sites-available/$domain.conf"
+
+    # Enable the access log by uncommenting the CustomLog line
+    if [ -f "$conf_file" ]; then
+        sudo sed -i 's/^#    CustomLog/    CustomLog/' "$conf_file"
+        sudo systemctl reload apache2
+        echo "Access logs enabled for $domain."
+    else
+        echo "Error: Configuration file for $domain not found."
+    fi
 }
 
 # Function to add SSL configuration to the virtual host
@@ -341,7 +373,6 @@ display_ascii_art
 
 # Parse command-line arguments
 install_basics_flag=false
-
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --install-basics)
@@ -350,7 +381,7 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --php-version)
             php_version="$2"
-            shift
+            shift 2  # Shift past the option and the value.
             ;;
         --create|--remove|--download-wp)
             command=$1
@@ -362,15 +393,26 @@ while [[ "$#" -gt 0 ]]; do
             done
             ;;
         --hide-pma)
-            domain=$2
-            hide_phpmyadmin $domain
+            domain="$2"
+            hide_phpmyadmin "$domain"
             shift 2
             ;;
         --show-pma)
-            domain=$2
-            show_phpmyadmin $domain
+            domain="$2"
+            show_phpmyadmin "$domain"
             shift 2
             ;;
+        
+        --disable-access-logs)
+            disable_access_logs
+            shift
+            ;;
+            
+        --enable-access-logs)
+            enable_access_logs
+            shift
+            ;;
+
         *)
             echo "Invalid option: $1"
             exit 1
