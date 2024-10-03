@@ -7,7 +7,7 @@ Host one or more sites on your linux server with one command. This script create
 - Access to the terminal with `sudo` privileges.
 - MySQL/MariaDB installed for database operations.
 - DigitalOcean account and Spaces set up for storing backups.
-- 
+
 # Quickstart - Install or migrate WordPress
 
 We have included a new quickstart script to easily migrate your site if you use wordpress and mgrating to Ubuntu VPS. We assume you are also using wp_offload_media plugin with digitalocean and also want backup of database every 8 hours. It’s designed to streamline the process of migrating a WordPress environment in few seconds.
