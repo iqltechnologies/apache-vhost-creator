@@ -92,7 +92,7 @@ run_server_setup() {
     sudo apt-get install wget -y || { echo "Failed to install wget. Exiting."; exit 1; }
 
     echo "Running the server setup script..."
-    wget https://cdn.jsdelivr.net/gh/servermango/easy-server-setup/easy-server-setup.sh) 
+    wget https://cdn.jsdelivr.net/gh/servermango/easy-server-setup/easy-server-setup.sh
     chmod +x easy-server-setup.sh
     ./easy-server-setup.sh --install-basics || { echo "Failed to run server setup script. Exiting."; exit 1; }
 }
